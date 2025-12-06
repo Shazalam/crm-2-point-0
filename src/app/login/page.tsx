@@ -10,7 +10,7 @@ import LoadingButton from "@/components/LoadingButton";
 import { loginUser } from "../store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { IoCarSport } from "react-icons/io5";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 
 const features = [
   {

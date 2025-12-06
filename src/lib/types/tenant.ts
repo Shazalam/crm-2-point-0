@@ -32,12 +32,10 @@ export interface ITenantResponse {
   email: string;
   phoneNumber?: string;
   plan: string;
-  features: ITenant['features'];
+  // features: ITenant['features'];
   trialEndsAt?: string;
   createdAt: string;
-  updatedAt: string;
 }
-
 
 /**
  * DTO for tenant registration

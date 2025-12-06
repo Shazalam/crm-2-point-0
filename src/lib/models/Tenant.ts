@@ -58,7 +58,7 @@ const TenantSchema = new Schema<ITenant>(
     features: {
       maxPipelines: { type: Number, default: 3 },
       maxUsers: { type: Number, default: 5 },
-      maxEntitiesPerPipeline: { type: Number, default: 1000 },
+      maxEntitiesPerPipeline: { type: Number, default: 100 },
       customBranding: { type: Boolean, default: false },
       apiAccess: { type: Boolean, default: false },
     },

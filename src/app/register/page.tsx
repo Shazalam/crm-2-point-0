@@ -7,7 +7,7 @@ import { Eye, EyeOff, ArrowRight, CheckCircle, XCircle, User, Mail, Lock, Shield
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingButton from "@/components/LoadingButton";
 import { IoCarSport } from "react-icons/io5";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 
 export default function RegisterPage() {
   const router = useRouter();

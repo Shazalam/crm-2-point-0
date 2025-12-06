@@ -728,7 +728,7 @@ import { clearBooking, fetchBookingById, resetOperationStatus, saveBooking } fro
 import ErrorComponent from "@/components/ErrorComponent";
 import { Booking, editableGroups, emptyForm, TimelineChange, TimelineEntry } from "@/lib/types/booking";
 import FieldSelectionPanel from "@/components/FieldSelectionPanel";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import { RootState } from "@/app/store/store";
 import { addRentalCompany, fetchRentalCompanies } from "@/app/store/slices/rentalCompanySlice";
 import { maskEmail, maskPhone } from "@/lib/utils/maskEmainAndPhoneNumber";

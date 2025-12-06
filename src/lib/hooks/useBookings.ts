@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { RootState } from '@/app/store/store';
 import { fetchBookings } from '@/app/store/slices/bookingSlice';
-import { useToastHandler } from '@/lib/utils/hooks/useToastHandler';
+import { useToastHandler } from '@/lib/hooks/useToastHandler';
 
 export const useBookings = () => {
   const dispatch = useAppDispatch();

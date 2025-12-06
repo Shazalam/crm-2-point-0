@@ -19,7 +19,7 @@ import {
 } from "react-icons/fi";
 import { IoCarSport } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 
 
 export default function Navbar() {

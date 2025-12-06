@@ -15,7 +15,7 @@ import ErrorComponent from "@/components/ErrorComponent";
 import FieldSelectionPanel from "@/components/FieldSelectionPanel";
 import { Booking, TimelineChange, TimelineEntry } from "@/lib/types/booking";
 import { addRentalCompany, fetchRentalCompanies } from "@/app/store/slices/rentalCompanySlice";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import { RootState } from "@/app/store/store";
 
 const createEditableGroups = {

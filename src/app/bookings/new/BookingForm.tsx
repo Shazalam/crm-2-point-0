@@ -12,7 +12,7 @@ import { RootState } from "@/app/store/store";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { addRentalCompany, fetchRentalCompanies } from "@/app/store/slices/rentalCompanySlice";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import { clearBooking, fetchBookingById, saveBooking } from "@/app/store/slices/bookingSlice";
 import { maskEmail, maskPhone } from "@/lib/utils/maskEmainAndPhoneNumber";
 

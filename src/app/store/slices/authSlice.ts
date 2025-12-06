@@ -1,4 +1,6 @@
+import { ITenantResponse } from '@/lib/types/tenant';
 import { handleAxiosError } from '@/lib/utils/handleAxiosError';
+import {type RegisterTenantFormValues } from '@/lib/validators/register.validator';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -31,9 +33,9 @@ const initialState: AuthState = {
 };
 
 // 🔐 Register
-export const registerUser = createAsyncThunk<
-  User,
-  { name: string; email: string; password: string },
+export const registerTenantThunk  = createAsyncThunk<
+  RegisterTenantFormValues,
+  ITenantResponse,
   { rejectValue: string }
 >('auth/register', async (formData, thunkAPI) => {
   try {
@@ -121,15 +123,15 @@ const authSlice = createSlice({
       })
 
       // 📝 Register
-      .addCase(registerUser.pending, (s) => {
+      .addCase(registerTenantThunk .pending, (s) => {
         s.loading = true; s.error = null;
         toast.dismiss(); toast.loading('Registering...');
       })
-      .addCase(registerUser.fulfilled, (s, a: PayloadAction<User>) => {
+      .addCase(registerTenantThunk .fulfilled, (s, a: PayloadAction<User>) => {
         s.loading = false; s.user = a.payload; s.success = true;
         toast.dismiss(); toast.success('Registered successfully ✅');
       })
-      .addCase(registerUser.rejected, (s, a) => {
+      .addCase(registerTenantThunk .rejected, (s, a) => {
         s.loading = false; s.error = a.payload as string;
         toast.dismiss(); toast.error(a.payload as string || 'Registration failed ❌');
       })

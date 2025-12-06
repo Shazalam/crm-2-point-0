@@ -23,10 +23,10 @@ import ConfirmDeleteBookingModal from "@/components/ConfirmDeleteBookingModal";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Booking, deleteBooking } from "../store/slices/bookingSlice";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import BookingRow from "./BookingTableRow";
 import ErrorComponent from "@/components/ErrorComponent";
-import { useBookings } from "@/lib/utils/hooks/useBookings";
+import { useBookings } from "@/lib/hooks/useBookings";
 
 type BookingStatus = Booking["status"];
 type SortableField =
