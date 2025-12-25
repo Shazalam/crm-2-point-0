@@ -7,10 +7,10 @@ import Link from "next/link";
 import { Eye, EyeOff, ArrowRight, Star, Shield, Zap, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingButton from "@/components/LoadingButton";
-import { loginUser } from "../store/slices/authSlice";
+import { loginUserThunk } from "../store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { IoCarSport } from "react-icons/io5";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 
 const features = [
   {
@@ -38,7 +38,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState({ email: false, password: false });
   const { handleSuccessToast, handleErrorToast, showLoadingToast } = useToastHandler()
-  const { loading } = useAppSelector((state) => state.auth);
+  const { loginLoading } = useAppSelector((state) => state.auth);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -46,13 +46,11 @@ export default function LoginPage() {
     const toastId = showLoadingToast("Signing in...");
 
     try {
-      const result = await dispatch(loginUser({ email, password })).unwrap();
-
-      console.log("login result =>", result )
+      const result = await dispatch(loginUserThunk({ email, password })).unwrap();
 
       router.push("/dashboard");
       // ✅ Show success toast (replace loading toast)
-      handleSuccessToast(`Welcome back, ${result?.data?.name   || "Agent"}!`, toastId);
+      handleSuccessToast(`Welcome back, ${result?.name   || "Agent"}!`, toastId);
     
     } catch (err) {
       handleErrorToast(err as string  , toastId);
@@ -312,10 +310,10 @@ export default function LoginPage() {
                 >
                   <LoadingButton
                     type="submit"
-                    loading={loading}
+                    loading={loginLoading}
                     className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? (
+                    {loginLoading ? (
                       <>
                         <span>Signing in...</span>
                       </>

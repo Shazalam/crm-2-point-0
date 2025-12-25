@@ -15,6 +15,7 @@ export function generateSlug(text: string): string {
 /**
  * Generate unique slug by appending random string
  */
+
 export function generateUniqueSlug(baseSlug: string): string {
   const randomSuffix = Math.random().toString(36).substring(2, 8);
   return `${baseSlug}-${randomSuffix}`;

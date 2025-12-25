@@ -1,7 +1,7 @@
 // components/Navbar.tsx
 "use client";
 
-import { logoutUser} from "@/app/store/slices/authSlice";
+import { logoutUserThunk} from "@/app/store/slices/authSlice";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,7 +19,7 @@ import {
 } from "react-icons/fi";
 import { IoCarSport } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 
 
 export default function Navbar() {
@@ -51,7 +51,7 @@ export default function Navbar() {
   const handleLogout = useCallback(async () => {
     const toastId = showLoadingToast('Signing out...');
     try {
-      await dispatch(logoutUser()).unwrap();
+      await dispatch(logoutUserThunk()).unwrap();
       handleSuccessToast('Signed out successfully ✅', toastId);
       router.replace('/login');
     } catch (err) {

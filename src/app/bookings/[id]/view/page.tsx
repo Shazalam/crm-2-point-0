@@ -22,9 +22,9 @@ import GiftCardModal from "@/components/GiftCardModal";
 import { giftCardTemplate, GiftCardTemplateData } from "@/lib/email/templates/giftCard";
 import { clearCustomer, fetchCustomerById } from "@/app/store/slices/customerSlice";
 import ImagePreviewModal from "@/components/docuSignPreviewModal";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
-import { fetchCurrentUser, User } from "@/app/store/slices/authSlice";
-
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
+import { fetchCurrentUserThunk } from "@/app/store/slices/authSlice";
+import { User } from "@/lib/types";
 
 // Define the FormattedBookingChange interface locally
 interface FormattedBookingChange {
@@ -159,11 +159,10 @@ export default function BookingDetailPage() {
             .catch((err) => handleErrorToast(err));
     };
 
-
     // Fetch current user using Redux thunk
     useEffect(() => {
         if (!user) {
-            dispatch(fetchCurrentUser())
+            dispatch(fetchCurrentUserThunk())
                 .unwrap()
                 .then((userData) => {
                     setAgent(userData);
@@ -185,8 +184,7 @@ export default function BookingDetailPage() {
             bookingId: id as string,
             noteId: editingNoteId,
             text: editingNoteText.trim()
-        }))
-            .unwrap()
+        })).unwrap()
             .then(() => {
                 handleSuccessToast("Note updated successfully!");
                 setEditingNoteId(null);

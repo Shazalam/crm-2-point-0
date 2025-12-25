@@ -1,192 +1,127 @@
+// app/api/tenant/register/route.ts
+import { NextRequest } from "next/server";
+import crypto from "crypto";
 import { connectDB } from "@/lib/utils/db";
-import { hashPassword } from "@/lib/utils/auth";
-import Agent from "@/lib/models/Agent";
-import { apiResponse } from "@/lib/utils/apiResponse";
+import {
+  badRequest,
+  conflict,
+  created,
+  internalError,
+  validationError,
+  ErrorCode,
+  type RequestContext,
+} from "@/lib/utils/apiResponse";
+import { registerTenantService } from "@/lib/services/auth/register.service";
+import { registerTenantSchema, type RegisterTenantFormValues} from './../../../../lib/validators/register.validator';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const context: RequestContext = {
+    requestId: crypto.randomUUID(),
+    userAgent: req.headers.get("user-agent") || undefined,
+    ipAddress: req.headers.get("x-forwarded-for") || undefined,
+  };
+
+  const meta = {
+    timestamp: new Date().toISOString(),
+    version: process.env.APP_VERSION || "1.0.0",
+    requestId: context.requestId,
+  };
+
   try {
     await connectDB();
-    const { name, email, password } = await req.json();
 
-    if (!name || !email || !password) {
-      return apiResponse({ error: "All fields are required" }, 400);
-    }
+    let body;
 
-    // ✅ Password strength validation
-    const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-    if (!strongRegex.test(password)) {
-      return apiResponse(
-        {
-          error:
-            "Weak password: must be 8+ chars, include uppercase, lowercase, number, and special character",
-        },
-        400
+    try {
+      body = (await req.json());
+    } catch {
+      return badRequest(
+        "Invalid JSON in request body",
+        ErrorCode.VALIDATION_ERROR,
+        { body: "Malformed JSON" },
+        context
       );
     }
 
-    // check if exists
-    const existing = await Agent.findOne({ email });
-    if (existing) {
-      return apiResponse({ error: "Agent already exists" }, 400);
+    // Zod validation (server-side)
+    const parseResult = registerTenantSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      const fieldErrors: Record<string, string[]> = {};
+      parseResult.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || "form";
+        if (!fieldErrors[path]) fieldErrors[path] = [];
+        fieldErrors[path].push(issue.message);
+      });
+
+      return validationError(fieldErrors, "Invalid input", context);
     }
 
-    // hash password
-    const hashed = await hashPassword(password);
+    const { name, email, password, phoneNumber } =
+      parseResult.data as RegisterTenantFormValues;
 
-    const agent = await Agent.create({
+    // Route‑level validation can be done here or via Zod:
+    // const { name, email, password, phoneNumber } = body;
+
+    if (!name || !email || !password) {
+      return badRequest(
+        "Missing required fields",
+        ErrorCode.REQUIRED_FIELD,
+        { fields: ["name", "email", "password"] },
+        context
+      );
+    }
+
+    // Delegate to service
+    const tenantDTO = await registerTenantService({
       name,
       email,
-      password: hashed,
+      password,
+      phoneNumber,
     });
 
-    // ✅ Don’t return password in response
-    return apiResponse(
+    return created(tenantDTO, "Tenant registered successfully", meta);
+  } catch (error: any) {
+    // Map known service errors to proper responses
+    if (error?.code === "WEAK_PASSWORD") {
+      return validationError(
+        error.details ?? {
+          password: [
+            "Must contain: uppercase, lowercase, number, special character & be 8+ characters.",
+          ],
+        },
+        "Weak password",
+        context
+      );
+    }
+
+    if (error?.code === "TENANT_EMAIL_EXISTS") {
+      return conflict(
+        "Tenant with this email already exists",
+        ErrorCode.ALREADY_EXISTS,
+        error.details,
+        context
+      );
+    }
+
+    if (error?.code === "MISSING_FIELDS") {
+      return badRequest(
+        error.message || "Missing required fields",
+        ErrorCode.REQUIRED_FIELD,
+        { fields: error.fields },
+        context
+      );
+    }
+
+    // Unknown/unexpected error → internal error
+    return internalError(
+      "Failed to register tenant",
+      ErrorCode.INTERNAL_ERROR,
       {
-        success: true,
-        agent: { id: agent._id, name: agent.name, email: agent.email },
+        message: error instanceof Error ? error.message : "Unexpected error",
+        ...(error instanceof Error && { stack: error.stack }),
       },
-      201
+      context
     );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Server error";
-    return apiResponse({ error: message }, 500);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // app/api/tenant/register/route.ts
-// import { NextRequest } from "next/server";
-// import crypto from "crypto";
-// import { connectDB } from "@/lib/utils/db";
-// import Tenant from "@/lib/models/Tenant";
-// import { hashPassword } from "@/lib/utils/auth";
-// import { badRequest, conflict, created, ErrorCode, internalError, validationError } from "@/lib/utils/apiResponse";
-// import type { RequestContext } from "@/lib/utils/apiResponse";
-
-// // Helper to generate slug
-// function generateSlug(name: string): string {
-//   return name.toLowerCase().trim().replace(/\s+/g, "-");
-// }
-
-// export async function POST(req: NextRequest) {
-//   // Setup request context (for logging + tracing)
-//   const context: RequestContext = {
-//     requestId: crypto.randomUUID(),
-//     userAgent: req.headers.get("user-agent") || undefined,
-//     ipAddress: req.headers.get("x-forwarded-for") || undefined,
-//   };
-
-//   const meta = {
-//     timestamp: new Date().toISOString(),
-//     version: process.env.APP_VERSION || "1.0.0",
-//     requestId: context.requestId || undefined,
-//   };
-
-
-
-//   try {
-//     await connectDB();
-//     const body = await req.json();
-
-//     const { name, email, password, phoneNumber } = body;
-
-//     // Validate required fields
-//     if (!name || !email || !password) {
-//       return badRequest(
-//         "Missing required fields",
-//         ErrorCode.REQUIRED_FIELD,
-//         { fields: ["name", "email", "password"] },
-//         context
-//       );
-//     }
-
-//     // Strong password validation
-//     const strongPasswordRegex =
-//       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-//     if (!strongPasswordRegex.test(password)) {
-//       return validationError(
-//         {
-//           password: [
-//             "Must contain: uppercase, lowercase, number, special character & be 8+ characters.",
-//           ],
-//         },
-//         "Weak password",
-//         context
-//       );
-//     }
-
-//     // Check if tenant exists
-//     const existingTenant = await Tenant.findOne({ email });
-//     if (existingTenant) {
-//       return conflict(
-//         "Tenant with this email already exists",
-//         ErrorCode.ALREADY_EXISTS,
-//         { email },
-//         context
-//       );
-//     }
-
-//     // Create unique slug
-//     let slug = generateSlug(name);
-//     const slugExists = await Tenant.exists({ slug });
-
-//     if (slugExists) {
-//       slug = `${slug}-${crypto.randomBytes(3).toString("hex")}`;
-//     }
-
-//     // Hash password
-//     const hashedPassword = await hashPassword(password);
-
-//     // Create tenant
-//     const tenant = await Tenant.create({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       phoneNumber,
-//       slug,
-//       plan: "free",
-//     });
-
-//     // Return safe response (no password leaking)
-//     const responsePayload = {
-//       id: tenant._id.toString(),
-//       name,
-//       email,
-//       phoneNumber,
-//       slug,
-//       plan: tenant.plan,
-//       createdAt: tenant.createdAt,
-//       trialEndsAt: tenant.trialEndsAt,
-//     };
-
-//     return created(responsePayload, "Tenant registered successfully", 
-//       meta,
-//   );
-
-//   } catch (error) {
-//     return internalError(
-//       "Failed to register tenant",
-//       ErrorCode.INTERNAL_ERROR,
-//       {
-//         message: error instanceof Error ? error.message : "Unexpected error",
-//         ...(error instanceof Error && { stack: error.stack }),
-//       },
-//       context
-//     );
-//   }
-// }

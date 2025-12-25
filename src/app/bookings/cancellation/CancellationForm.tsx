@@ -12,10 +12,10 @@ import { clearBooking, fetchBookingById } from "@/app/store/slices/bookingSlice"
 import ErrorComponent from "@/components/ErrorComponent";
 import { Booking } from "@/lib/types/booking";
 import TimePicker from "@/components/TimePicker";
-import { fetchCurrentUser } from "@/app/store/slices/authSlice";
+import { fetchCurrentUserThunk } from "@/app/store/slices/authSlice";
 import { RootState } from "@/app/store/store";
 import { addRentalCompany, fetchRentalCompanies } from "@/app/store/slices/rentalCompanySlice";
-import { useToastHandler } from "@/lib/utils/hooks/useToastHandler";
+import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import { maskEmail, maskPhone } from "@/lib/utils/maskEmainAndPhoneNumber";
 
 export default function CancellationForm() {
@@ -144,7 +144,7 @@ export default function CancellationForm() {
 
         (async () => {
             try {
-                dispatch(fetchCurrentUser())
+                dispatch(fetchCurrentUserThunk())
                     .unwrap()
                     .then((userData) => {
                         setForm((prev) => ({ ...prev, salesAgent: userData.name }));
