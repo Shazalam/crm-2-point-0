@@ -5,18 +5,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { registerTenantThunk, resetRegisterState } from "@/lib/store/auth/registerSlice";
 import { useToastHandler } from "@/lib/hooks/useToastHandler";
 import LoadingButton from "@/components/LoadingButton";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Lock, Eye, EyeOff, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, CheckCircle, XCircle, ArrowRight, Phone } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { registerTenantSchema, type RegisterTenantFormValues} from "@/lib/validators/register.validator";
+import { registerTenantSchema, type RegisterTenantFormValues } from "@/lib/validators/register.validator";
+import { clearRegisterError, registerTenantThunk } from "@/app/store/slices/authSlice";
+import { ErrorCode, ErrorMessages } from "@/lib/types";
 
 export function RegisterForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { loading, error, success } = useAppSelector((s) => s.register);
+  const { registerLoading, registerError, tenant } = useAppSelector(
+    (s) => s.auth
+  );
   const { handleSuccessToast, handleErrorToast, showLoadingToast, handleDismissToast } =
     useToastHandler();
 
@@ -25,6 +28,7 @@ export function RegisterForm() {
     name: false,
     email: false,
     password: false,
+    phoneNumber: false,
   });
 
   const {
@@ -114,21 +118,29 @@ export function RegisterForm() {
     [password]
   );
 
+  // ✅ Handle success
   useEffect(() => {
-    if (success) {
-      handleSuccessToast("Account created successfully! Please log in.");
-      dispatch(resetRegisterState());
-      router.push("/login");
+    if (tenant) {
+      handleSuccessToast("Account created! Please verify your email.");
+      // router.push(`/auth/verify?email=${encodeURIComponent(tenant.email)}`);
     }
-  }, [success, dispatch, handleSuccessToast, router]);
+  }, [tenant, router, handleSuccessToast]);
 
+  // ✅ Handle error with proper message mapping
   useEffect(() => {
-    if (error) {
-      handleErrorToast(error);
-    }
-  }, [error, handleErrorToast]);
+    if (registerError) {
+      const code = registerError.code as ErrorCode;
 
-  async function onSubmit(values: RegisterTenantSchema) {
+      const message =
+        (Object.values(ErrorCode).includes(code) && ErrorMessages[code]) ||
+        registerError.message;
+
+      handleErrorToast(message);
+      dispatch(clearRegisterError());
+    }
+  }, [registerError, dispatch, handleErrorToast]);
+
+  async function onSubmit(values: RegisterTenantFormValues) {
     const strength = getPasswordStrength(values.password);
     if (strength.label === "Too short" || strength.label === "Weak") {
       handleErrorToast("Please use a stronger password");
@@ -142,12 +154,13 @@ export function RegisterForm() {
     handleDismissToast(toastId);
 
     if (registerTenantThunk.rejected.match(resultAction)) {
-      const payload = resultAction.payload as any;
-      const message =
-        payload?.error ||
-        payload?.message ||
-        "Registration failed. Please try again.";
-      handleErrorToast(message);
+      return
+      // const payload = resultAction.payload as any;
+      // const message =
+      //   payload?.error ||
+      //   payload?.message ||
+      //   "Registration failed. Please try again.";
+      // handleErrorToast(message);
     }
   }
 
@@ -168,11 +181,10 @@ export function RegisterForm() {
           <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
-            className={`w-full border-2 ${
-              isFocused.name
-                ? "border-blue-500 ring-4 ring-blue-100 bg-white"
-                : "border-slate-200 bg-slate-50/50"
-            } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
+            className={`w-full border-2 ${isFocused.name
+              ? "border-blue-500 ring-4 ring-blue-100 bg-white"
+              : "border-slate-200 bg-slate-50/50"
+              } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
             placeholder="Enter your full name"
             {...register("name")}
             onFocus={() => setIsFocused((prev) => ({ ...prev, name: true }))}
@@ -193,11 +205,10 @@ export function RegisterForm() {
           <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="email"
-            className={`w-full border-2 ${
-              isFocused.email
-                ? "border-blue-500 ring-4 ring-blue-100 bg-white"
-                : "border-slate-200 bg-slate-50/50"
-            } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
+            className={`w-full border-2 ${isFocused.email
+              ? "border-blue-500 ring-4 ring-blue-100 bg-white"
+              : "border-slate-200 bg-slate-50/50"
+              } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
             placeholder="your@company.com"
             {...register("email")}
             onFocus={() => setIsFocused((prev) => ({ ...prev, email: true }))}
@@ -208,6 +219,33 @@ export function RegisterForm() {
           <p className="text-xs text-red-600">{errors.email.message}</p>
         )}
       </div>
+      {/* Phone Number */}
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-slate-700">
+          Phone Number
+        </label>
+
+        <motion.div whileFocus={{ scale: 1.02 }} className="relative">
+          <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+
+          <input
+            type="tel"
+            className={`w-full border-2 ${isFocused.phoneNumber
+                ? "border-blue-500 ring-4 ring-blue-100 bg-white"
+                : "border-slate-200 bg-slate-50/50"
+              } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
+            placeholder="+91 98765 43210"
+            {...register("phoneNumber")}
+            onFocus={() => setIsFocused((prev) => ({ ...prev, phoneNumber: true }))}
+            onBlur={() => setIsFocused((prev) => ({ ...prev, phoneNumber: false }))}
+          />
+        </motion.div>
+
+        {errors.phoneNumber && (
+          <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
+        )}
+      </div>
+
 
       {/* Password */}
       <div className="space-y-3">
@@ -218,11 +256,10 @@ export function RegisterForm() {
           <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type={showPassword ? "text" : "password"}
-            className={`w-full border-2 ${
-              isFocused.password
-                ? "border-blue-500 ring-4 ring-blue-100 bg-white"
-                : "border-slate-200 bg-slate-50/50"
-            } rounded-xl p-4 pl-12 pr-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
+            className={`w-full border-2 ${isFocused.password
+              ? "border-blue-500 ring-4 ring-blue-100 bg-white"
+              : "border-slate-200 bg-slate-50/50"
+              } rounded-xl p-4 pl-12 pr-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
             placeholder="Create a strong password"
             {...register("password")}
             onFocus={() =>
@@ -267,15 +304,14 @@ export function RegisterForm() {
                 Password strength
               </span>
               <span
-                className={`text-sm font-semibold ${
-                  passwordStrength.label === "Strong"
-                    ? "text-green-600"
-                    : passwordStrength.label === "Good"
+                className={`text-sm font-semibold ${passwordStrength.label === "Strong"
+                  ? "text-green-600"
+                  : passwordStrength.label === "Good"
                     ? "text-blue-600"
                     : passwordStrength.label === "Fair"
-                    ? "text-amber-600"
-                    : "text-red-600"
-                }`}
+                      ? "text-amber-600"
+                      : "text-red-600"
+                  }`}
               >
                 {passwordStrength.label}
               </span>
@@ -304,9 +340,8 @@ export function RegisterForm() {
                     <XCircle className="w-4 h-4 text-red-400" />
                   )}
                   <span
-                    className={`text-xs ${
-                      req.met ? "text-green-600" : "text-red-600"
-                    }`}
+                    className={`text-xs ${req.met ? "text-green-600" : "text-red-600"
+                      }`}
                   >
                     {req.text}
                   </span>
@@ -325,10 +360,10 @@ export function RegisterForm() {
       >
         <LoadingButton
           type="submit"
-          loading={loading}
+          loading={registerLoading}
           className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? (
+          {registerLoading ? (
             <div className="flex items-center justify-center space-x-2">
               <span>Creating Account...</span>
             </div>

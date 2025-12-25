@@ -27,11 +27,23 @@ export const registerTenantSchema = z.object({
       (val) => !val || /^[+\d][\d\s-]{6,}$/.test(val),
       "Please enter a valid phone number"
     ),
-
 });
 
 export type RegisterTenantFormValues = z.infer<typeof registerTenantSchema>;
 
+// Zod schema for OTP verification request
+export const verifyOtpSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  otp: z
+    .string()
+    .length(6, 'OTP must be exactly 6 digits')
+    .regex(/^[0-9]+$/, 'OTP must be numeric'),
+});
+
+export type VerifyOtpRequest = z.infer<typeof verifyOtpSchema>;
 
 /**
  * Validate and parse input

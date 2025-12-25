@@ -70,6 +70,13 @@ export interface CreateTenantInternalDto {
 }
 
 /**
+ * Response from /api/tenant/register endpoint
+ */
+export interface RegisterTeaentResponse {
+  tenant: ITenantResponse;
+}
+
+/**
  * DTO for updating tenant
  */
 export interface UpdateTenantDto {

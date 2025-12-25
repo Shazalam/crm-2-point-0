@@ -23,7 +23,7 @@ export async function sendVerificationEmail({
 
   await sendEmail({
     to: email,
-    subject: "Verify your FlowCRM Account",
+    subject: "Verify your BFDS HUB CRM Account",
     html,
   });
 }

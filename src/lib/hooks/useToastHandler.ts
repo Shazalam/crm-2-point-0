@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { toast, ToastOptions } from "react-hot-toast";
 
-
 export function useToastHandler() {
 
   const showLoadingToast = useCallback((message: string, id: string = "global-toast") => {

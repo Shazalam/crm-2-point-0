@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <Navbar />
           {/* ✅ Run user fetch logic once globally */}
-          <GlobalAuthInitializer />
+          {/* <GlobalAuthInitializer /> */}
           {children}
           <Toaster
             position="top-right"

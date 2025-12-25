@@ -1,10 +1,27 @@
 import { connectDB } from "@/lib/utils/db";
 import Booking from "@/lib/models/Booking";
-import { apiResponse } from "@/lib/utils/apiResponse";
 import { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/utils/auth";
+import {
+  badRequest,
+  notFound,
+  unauthorized,
+  internalError,
+  success,
+  unprocessableEntity,
+  ErrorCode,
+  HttpStatus,
+} from "@/lib/utils/apiResponse";
 
-
+/**
+ * PUT /api/bookings/[id]/notes/[noteId]
+ * Updates a specific note within a booking
+ *
+ * Request body:
+ * {
+ *   "text": "Updated note content"
+ * }
+ */
 export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string; noteId: string }> }
@@ -12,13 +29,49 @@ export async function PUT(
   try {
     await connectDB();
 
-    const { id, noteId } = await context.params; // ✅ await here
-    const { text } = await req.json();
+    // ✅ Await params (Next.js 15+)
+    const { id, noteId } = await context.params;
 
-    if (!text?.trim()) {
-      return apiResponse({ error: "Note text is required" }, 400);
+    // ✅ Parse request body
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return badRequest(
+        "Invalid JSON in request body",
+        ErrorCode.VALIDATION_ERROR
+      );
     }
 
+    const { text } = body;
+
+    // ✅ Validate required fields
+    if (!text || typeof text !== "string") {
+      return badRequest(
+        "Note text is required and must be a string",
+        ErrorCode.REQUIRED_FIELD,
+        { field: "text" }
+      );
+    }
+
+    if (text.trim().length === 0) {
+      return badRequest(
+        "Note text cannot be empty",
+        ErrorCode.VALIDATION_ERROR,
+        { field: "text" }
+      );
+    }
+
+    // ✅ Validate MongoDB ObjectIds
+    if (!isValidMongoId(id) || !isValidMongoId(noteId)) {
+      return badRequest(
+        "Invalid booking or note ID format",
+        ErrorCode.VALIDATION_ERROR,
+        { bookingId: id, noteId }
+      );
+    }
+
+    // ✅ Update the note
     const booking = await Booking.findOneAndUpdate(
       { _id: id, "notes._id": noteId },
       {
@@ -30,17 +83,69 @@ export async function PUT(
       { new: true }
     );
 
+    // ✅ Check if booking or note exists
     if (!booking) {
-      return apiResponse({ error: "Booking or note not found" }, 404);
+      return notFound(
+        "Booking or note not found",
+        ErrorCode.NOT_FOUND,
+        { bookingId: id, noteId }
+      );
     }
 
-    return apiResponse({ success: true, booking });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Server error";
-    return apiResponse({ error: message }, 500);
+    // ✅ Success response
+    return success(
+      {
+        booking,
+        updatedNote: {
+          noteId,
+          text: text.trim(),
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      "Note updated successfully",
+      HttpStatus.OK
+    );
+  } catch (error: unknown) {
+    console.error("❌ Update Note Error:", error);
+
+    if (error instanceof Error) {
+      // Database connection errors
+      if (error.message.includes("connect")) {
+        return internalError(
+          "Database connection failed. Please try again later.",
+          ErrorCode.DATABASE_ERROR,
+          { originalError: error.message }
+        );
+      }
+
+      // Validation errors from Mongoose
+      if (error.message.includes("validation")) {
+        return unprocessableEntity(
+          "Note validation failed",
+          ErrorCode.VALIDATION_ERROR,
+          { originalError: error.message }
+        );
+      }
+
+      return internalError(
+        "Failed to update note",
+        ErrorCode.INTERNAL_ERROR,
+        { originalError: error.message }
+      );
+    }
+
+    return internalError(
+      "An unexpected error occurred",
+      ErrorCode.INTERNAL_ERROR,
+      { originalError: String(error) }
+    );
   }
 }
 
+/**
+ * DELETE /api/bookings/[id]/notes/[noteId]
+ * Deletes a specific note from a booking (requires authentication)
+ */
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string; noteId: string }> }
@@ -48,31 +153,126 @@ export async function DELETE(
   try {
     await connectDB();
 
-    const { id, noteId } = await context.params; // ✅ await the params
+    // ✅ Await params (Next.js 15+)
+    const { id, noteId } = await context.params;
 
-    // Auth check
-    const token = req.headers.get("cookie")?.split("token=")[1]?.split(";")[0];
-    if (!token) return apiResponse({ error: "Unauthorized" }, 401);
-
-    const decoded = verifyToken(token);
-    if (typeof decoded === "string" || !decoded || !("id" in decoded)) {
-      return apiResponse({ error: "Invalid token" }, 401);
+    // ✅ Validate MongoDB ObjectIds
+    if (!isValidMongoId(id) || !isValidMongoId(noteId)) {
+      return badRequest(
+        "Invalid booking or note ID format",
+        ErrorCode.VALIDATION_ERROR,
+        { bookingId: id, noteId }
+      );
     }
 
-    // Delete the note using $pull
+    // ✅ Authentication: Extract and verify token
+    const token = extractTokenFromCookie(req.headers.get("cookie"));
+    if (!token) {
+      return unauthorized(
+        "Authentication token is required",
+        ErrorCode.UNAUTHENTICATED
+      );
+    }
+
+    // ✅ Verify token validity
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !decoded || !("id" in decoded)) {
+      return unauthorized(
+        "Invalid or expired authentication token",
+        ErrorCode.INVALID_TOKEN,
+        { details: "Token verification failed" }
+      );
+    }
+
+    // ✅ Delete the note using $pull operator
     const updatedBooking = await Booking.findByIdAndUpdate(
       id,
       { $pull: { notes: { _id: noteId } } },
       { new: true }
     );
 
+    // ✅ Check if booking exists
     if (!updatedBooking) {
-      return apiResponse({ error: "Booking not found" }, 404);
+      return notFound(
+        "Booking not found",
+        ErrorCode.NOT_FOUND,
+        { bookingId: id }
+      );
     }
 
-    return apiResponse({ success: true, booking: updatedBooking }, 200);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Server error";
-    return apiResponse({ error: message }, 500);
+    // ✅ Check if note was actually deleted
+    const noteFound = updatedBooking.notes.some(
+      (note: { _id: string }) => note._id.toString() === noteId
+    );
+    if (noteFound) {
+      return notFound(
+        "Note not found in booking",
+        ErrorCode.NOT_FOUND,
+        { noteId }
+      );
+    }
+
+    // ✅ Success response
+    return success(
+      {
+        booking: updatedBooking,
+        deletedNoteId: noteId,
+      },
+      "Note deleted successfully",
+      HttpStatus.OK
+    );
+  } catch (error: unknown) {
+    console.error("❌ Delete Note Error:", error);
+
+    if (error instanceof Error) {
+      // Database connection errors
+      if (error.message.includes("connect")) {
+        return internalError(
+          "Database connection failed. Please try again later.",
+          ErrorCode.DATABASE_ERROR,
+          { originalError: error.message }
+        );
+      }
+
+      return internalError(
+        "Failed to delete note",
+        ErrorCode.INTERNAL_ERROR,
+        { originalError: error.message }
+      );
+    }
+
+    return internalError(
+      "An unexpected error occurred",
+      ErrorCode.INTERNAL_ERROR,
+      { originalError: String(error) }
+    );
   }
+}
+
+/**
+ * Utility: Validate MongoDB ObjectId format
+ * @param id - The ID to validate
+ * @returns true if valid ObjectId format, false otherwise
+ */
+function isValidMongoId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
+/**
+ * Utility: Extract JWT token from cookie header
+ * @param cookieHeader - The cookie header string
+ * @returns The token value or null if not found
+ */
+function extractTokenFromCookie(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(";");
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split("=");
+    if (name === "token" && value) {
+      return decodeURIComponent(value);
+    }
+  }
+
+  return null;
 }
