@@ -3,17 +3,17 @@
 import { Loader2 } from "lucide-react";
 import React from "react";
 
-interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   children: React.ReactNode;
 }
 
-export default function LoadingButton({
+export default function Button({
   loading = false,
   children,
   className = "",
   ...props
-}: LoadingButtonProps) {
+}: ButtonProps) {
   return (
     <button
       {...props}

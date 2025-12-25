@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import LoadingButton from "@/components/LoadingButton";
+import Button from "@/components/Button";
 import InputField from "@/components/InputField";
 import VehicleSelector from "@/components/VehicleSelector";
 import { ArrowLeft, Calendar, User, CreditCard, MapPin, Briefcase } from "lucide-react";
@@ -625,7 +625,7 @@ export default function BookingForm() {
                             transition={{ delay: 0.8 }}
                             className="pt-6"
                         >
-                            <LoadingButton
+                            <Button
                                 type="submit"
                                 loading={loading}
                                 className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -638,7 +638,7 @@ export default function BookingForm() {
                                 ) : (
                                     <span>{isEditing ? "Update Booking" : "Create Booking"}</span>
                                 )}
-                            </LoadingButton>
+                            </Button>
                         </motion.div>
                     </form>
                 </motion.div>

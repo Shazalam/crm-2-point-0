@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToastHandler } from "@/lib/hooks/useToastHandler";
-import LoadingButton from "@/components/LoadingButton";
+import Button from "@/components/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Lock, Eye, EyeOff, CheckCircle, XCircle, ArrowRight, Phone } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
@@ -185,7 +185,7 @@ export function RegisterForm() {
               ? "border-blue-500 ring-4 ring-blue-100 bg-white"
               : "border-slate-200 bg-slate-50/50"
               } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
-            placeholder="Enter your full name"
+            placeholder="Enter business name"
             {...register("name")}
             onFocus={() => setIsFocused((prev) => ({ ...prev, name: true }))}
             onBlur={() => setIsFocused((prev) => ({ ...prev, name: false }))}
@@ -234,7 +234,7 @@ export function RegisterForm() {
                 ? "border-blue-500 ring-4 ring-blue-100 bg-white"
                 : "border-slate-200 bg-slate-50/50"
               } rounded-xl p-4 pl-12 placeholder-slate-400 text-slate-700 outline-none transition-all duration-300 text-lg font-medium`}
-            placeholder="+91 98765 43210"
+            placeholder="98765 43210"
             {...register("phoneNumber")}
             onFocus={() => setIsFocused((prev) => ({ ...prev, phoneNumber: true }))}
             onBlur={() => setIsFocused((prev) => ({ ...prev, phoneNumber: false }))}
@@ -245,7 +245,6 @@ export function RegisterForm() {
           <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
         )}
       </div>
-
 
       {/* Password */}
       <div className="space-y-3">
@@ -358,7 +357,7 @@ export function RegisterForm() {
         whileTap={{ scale: 0.98 }}
         className="pt-4"
       >
-        <LoadingButton
+        <Button
           type="submit"
           loading={registerLoading}
           className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -373,7 +372,7 @@ export function RegisterForm() {
               <ArrowRight size={20} />
             </div>
           )}
-        </LoadingButton>
+        </Button>
       </motion.div>
     </motion.form>
   );

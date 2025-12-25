@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import InputField from "@/components/InputField";
-import LoadingButton from "@/components/LoadingButton";
+import Button from "@/components/Button";
 import { ArrowLeft, AlertTriangle, Calculator, User, Calendar, MapPin, CreditCard, Briefcase, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -786,7 +786,7 @@ export default function CancellationForm() {
                             transition={{ delay: 1.0 }}
                             className="pt-6"
                         >
-                            <LoadingButton
+                            <Button
                                 type="submit"
                                 loading={isSubmitting}
                                 className="w-full bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -801,7 +801,7 @@ export default function CancellationForm() {
                                         <span>Confirm Cancellation</span>
                                     </div>
                                 )}
-                            </LoadingButton>
+                            </Button>
                         </motion.div>
                     </form>
                 </motion.div>

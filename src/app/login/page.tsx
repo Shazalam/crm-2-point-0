@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, ArrowRight, Star, Shield, Zap, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import LoadingButton from "@/components/LoadingButton";
+import Button from "@/components/Button";
 import { loginUserThunk } from "../store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { IoCarSport } from "react-icons/io5";
@@ -308,7 +308,7 @@ export default function LoginPage() {
                   whileTap={{ scale: 0.98 }}
                   className="pt-4"
                 >
-                  <LoadingButton
+                  <Button
                     type="submit"
                     loading={loginLoading}
                     className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -323,7 +323,7 @@ export default function LoginPage() {
                         <ArrowRight size={20} />
                       </>
                     )}
-                  </LoadingButton>
+                  </Button>
                 </motion.div>
               </motion.form>
 

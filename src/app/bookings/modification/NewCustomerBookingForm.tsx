@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import InputField from "@/components/InputField";
 import VehicleSelector from "@/components/VehicleSelector";
-import LoadingButton from "@/components/LoadingButton";
+import Button from "@/components/Button";
 import TimePicker from "@/components/TimePicker";
 import { ArrowLeft, Plus, Trash2, User, Calendar, MapPin, CreditCard, Briefcase, Edit3 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -742,7 +742,7 @@ export default function NewCustomerBookingForm({ id }: NewCustomerBookingFormPro
                   transition={{ delay: 1.0 }}
                   className="pt-6"
                 >
-                  <LoadingButton
+                  <Button
                     type="submit"
                     loading={loading}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -758,7 +758,7 @@ export default function NewCustomerBookingForm({ id }: NewCustomerBookingFormPro
                         <span>Create Modification Booking</span>
                       </div>
                     )}
-                  </LoadingButton>
+                  </Button>
                 </motion.div>
               </form>
             </motion.div>

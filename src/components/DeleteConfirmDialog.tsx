@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import LoadingButton from './LoadingButton';
+import Button from './Button';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -68,13 +68,13 @@ export default function DeleteConfirmDialog({
             Cancel
           </button>
 
-          <LoadingButton
+          <Button
             onClick={handleConfirm}
             loading={loading}
             className="bg-red-600 text-white hover:bg-red-700 px-5 py-2.5 rounded-lg shadow-md"
           >
             Delete
-          </LoadingButton>
+          </Button>
         </div>
       </div>
     </div>
