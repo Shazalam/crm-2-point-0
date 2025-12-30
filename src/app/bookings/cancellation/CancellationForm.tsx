@@ -12,7 +12,7 @@ import { clearBooking, fetchBookingById } from "@/app/store/slices/bookingSlice"
 import ErrorComponent from "@/components/ErrorComponent";
 import { Booking } from "@/lib/types/booking";
 import TimePicker from "@/components/TimePicker";
-import { fetchCurrentUserThunk } from "@/app/store/slices/authSlice";
+import { fetchCurrentTenantThunk } from "@/app/store/slices/authSlice";
 import { RootState } from "@/app/store/store";
 import { addRentalCompany, fetchRentalCompanies } from "@/app/store/slices/rentalCompanySlice";
 import { useToastHandler } from "@/lib/hooks/useToastHandler";
@@ -144,7 +144,7 @@ export default function CancellationForm() {
 
         (async () => {
             try {
-                dispatch(fetchCurrentUserThunk())
+                dispatch(fetchCurrentTenantThunk())
                     .unwrap()
                     .then((userData) => {
                         setForm((prev) => ({ ...prev, salesAgent: userData.name }));

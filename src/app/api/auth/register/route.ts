@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     // Zod validation (server-side)
     const parseResult = registerTenantSchema.safeParse(body);
-
+    
     if (!parseResult.success) {
       const fieldErrors: Record<string, string[]> = {};
       parseResult.error.issues.forEach((issue) => {
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       name,
       email,
       password,
-      phoneNumber,
+      phoneNumber
     });
 
     return created(tenantDTO, "Tenant registered successfully", meta);

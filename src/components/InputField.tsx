@@ -12,11 +12,15 @@ interface InputFieldProps {
   required?: boolean;
   readOnly?: boolean;
   step?: string;
-  min?: string;
+  min?: string | number;
   maxLength?: number;
   className?: string;
   icon?: React.ReactNode;
   error?: string;
+  // InputSize?:"sm" | "md" | "lg";
+  autoComplete?: string;
+  disabled?:boolean
+
 }
 
 export function InputField({
@@ -35,8 +39,12 @@ export function InputField({
   className = "",
   icon,
   error,
+  autoComplete,
+  // disabled
 }: InputFieldProps) {
+
   const inputId = name;
+  console.log("values =>", name, value)
 
   return (
     <div className="space-y-2">
@@ -72,13 +80,12 @@ export function InputField({
           maxLength={maxLength}
           aria-invalid={!!error || undefined}
           aria-describedby={error ? `${inputId}-error` : undefined}
-          className={`w-full border-2 rounded-xl p-4 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 ${
-            icon ? "pl-12 pr-4" : "px-4"
-          } ${
-            readOnly
+          autoComplete={autoComplete}
+          className={`w-full border-2 rounded-xl p-4 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 ${icon ? "pl-12 pr-4" : "px-4"
+            } ${readOnly
               ? "bg-slate-100 text-slate-500 cursor-not-allowed"
               : "bg-white/50"
-          } ${error ? "border-red-500 focus:ring-red-100" : "border-slate-200"} ${className}`}
+            } ${error ? "border-red-500 focus:ring-red-100" : "border-slate-200"} ${className}`}
         />
       </div>
 

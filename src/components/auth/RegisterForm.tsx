@@ -20,6 +20,7 @@ export function RegisterForm() {
   const { registerLoading, registerError, tenant } = useAppSelector(
     (s) => s.auth
   );
+  
   const { handleSuccessToast, handleErrorToast, showLoadingToast, handleDismissToast } =
     useToastHandler();
 
@@ -122,7 +123,7 @@ export function RegisterForm() {
   useEffect(() => {
     if (tenant) {
       handleSuccessToast("Account created! Please verify your email.");
-      // router.push(`/auth/verify?email=${encodeURIComponent(tenant.email)}`);
+      router.push(`/verify-email?email=${encodeURIComponent(tenant.email)}`);
     }
   }, [tenant, router, handleSuccessToast]);
 

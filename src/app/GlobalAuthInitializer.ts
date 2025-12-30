@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { useEffect } from "react";
-import { fetchCurrentUserThunk } from "./store/slices/authSlice";
+import { fetchCurrentTenantThunk } from "./store/slices/authSlice";
 
 export default function GlobalAuthInitializer() {
   const dispatch = useAppDispatch();
@@ -15,7 +15,7 @@ export default function GlobalAuthInitializer() {
     if (pathname === "/login" || pathname === "/register") return ;
 
     if (!user && !fetchUserLoading) {
-      dispatch(fetchCurrentUserThunk());
+      dispatch(fetchCurrentTenantThunk());
     }
   }, [dispatch,pathname,user,fetchUserLoading]); // avoid infinite loops
 

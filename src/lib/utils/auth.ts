@@ -8,8 +8,8 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables');
 }
 
-export function signToken(payload: object) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+export function signToken(tenantId: string): string {
+  return jwt.sign({tenantId}, JWT_SECRET, { expiresIn: "1d" });
 }
 
 export function verifyToken(token: string) {

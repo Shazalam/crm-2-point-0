@@ -23,7 +23,7 @@ import { giftCardTemplate, GiftCardTemplateData } from "@/lib/email/templates/gi
 import { clearCustomer, fetchCustomerById } from "@/app/store/slices/customerSlice";
 import ImagePreviewModal from "@/components/docuSignPreviewModal";
 import { useToastHandler } from "@/lib/hooks/useToastHandler";
-import { fetchCurrentUserThunk } from "@/app/store/slices/authSlice";
+import { fetchCurrentTenantThunk } from "@/app/store/slices/authSlice";
 import { User } from "@/lib/types";
 
 // Define the FormattedBookingChange interface locally
@@ -162,7 +162,7 @@ export default function BookingDetailPage() {
     // Fetch current user using Redux thunk
     useEffect(() => {
         if (!user) {
-            dispatch(fetchCurrentUserThunk())
+            dispatch(fetchCurrentTenantThunk())
                 .unwrap()
                 .then((userData) => {
                     setAgent(userData);
@@ -415,8 +415,8 @@ export default function BookingDetailPage() {
         )();
     }, [id, booking?._id, dispatch, handleErrorToast]);
 
+
     useEffect(() => {
-        console.log("hello")
         if (!id) return;
         if (customer && customer?._id) return
         if (activeTab !== "files") return

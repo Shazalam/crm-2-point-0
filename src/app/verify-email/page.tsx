@@ -1,6 +1,6 @@
 
 import { Suspense } from "react";
-// import VerifyEmailContent from "./VerifyEmailContent";
+import VerifyEmailContent from "./VerifyEmailContent";
 
 export default function VerifyEmailPage() {
   return (
@@ -10,7 +10,7 @@ export default function VerifyEmailPage() {
         <p className="text-gray-600">Loading...</p>
       </div>
     }>
-      {/* <VerifyEmailContent /> */}
+      <VerifyEmailContent />
     </Suspense>
   );
 }

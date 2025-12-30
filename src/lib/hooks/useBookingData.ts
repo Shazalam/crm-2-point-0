@@ -10,7 +10,7 @@ import {
   clearBooking 
 } from '@/app/store/slices/bookingSlice';
 import { clearCustomer, fetchCustomerById } from '@/app/store/slices/customerSlice';
-import { fetchCurrentUserThunk} from '@/app/store/slices/authSlice';
+import { fetchCurrentTenantThunk} from '@/app/store/slices/authSlice';
 import { useToastHandler } from '@/lib/hooks/useToastHandler';
 import { Note } from '@/lib/types/booking';
 
@@ -28,7 +28,7 @@ export const useBookingData = () => {
   // Fetch current user
   useEffect(() => {
     if (!user) {
-      dispatch(fetchCurrentUserThunk())
+      dispatch(fetchCurrentTenantThunk())
         .unwrap()
         .then(setAgent)
         .catch((error) => {

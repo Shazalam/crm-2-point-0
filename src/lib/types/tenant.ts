@@ -1,9 +1,10 @@
 export interface ITenant {
   _id: string;
   name: string;
-  email:string;
-  phoneNumber:string;
-  password:string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  emailVerified: boolean;
   slug: string;
   plan: "free" | "starter" | "pro" | "enterprise";
   dbStrategy: "shared" | "dedicated";
@@ -30,10 +31,10 @@ export interface ITenantResponse {
   name: string;
   slug: string;
   email: string;
+  otpExpiresIn: Date;
+  requiresVerification: boolean,
+  emailVerified?: boolean;
   phoneNumber?: string;
-  plan: string;
-  // features: ITenant['features'];
-  trialEndsAt?: string;
   createdAt: string;
 }
 
@@ -83,4 +84,9 @@ export interface UpdateTenantDto {
   name?: string;
   phoneNumber?: string;
   plan?: 'free' | 'starter' | 'pro' | 'enterprise';
+}
+
+export interface VerifyOtpResponse {
+  // Optionally return a safe tenant payload so UI can update state
+  tenant: ITenantResponse;
 }

@@ -127,9 +127,9 @@ export async function registerTenantService(
     name: tenantDoc.name,
     email: tenantDoc.email,
     phoneNumber: tenantDoc.phoneNumber,
+    otpExpiresIn:expires,
+    requiresVerification: true,
     slug: tenantDoc.slug,
-    plan: tenantDoc.plan,
     createdAt: tenantDoc.createdAt,
-    trialEndsAt: tenantDoc.trialEndsAt,
   };
 }

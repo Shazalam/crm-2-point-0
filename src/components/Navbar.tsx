@@ -61,7 +61,7 @@ export default function Navbar() {
 
 
     // Don't render navbar on auth pages
-  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/";
+  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/verify-email" || pathname === "/";
   
   if (isAuthPage) return null;
 
