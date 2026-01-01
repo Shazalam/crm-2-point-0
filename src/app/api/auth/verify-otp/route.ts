@@ -19,7 +19,7 @@ import { signToken } from "@/lib/utils/auth";
 import {
   verifyOtpSchema,
   type VerifyOtpRequest,
-} from "@/lib/validators/register.validator";
+} from "@/lib/validators/auth.validator";
 import type { VerifyOtpResponse } from "@/lib/types";
 
 /**

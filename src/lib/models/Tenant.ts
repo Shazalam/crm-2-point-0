@@ -38,7 +38,7 @@ const TenantSchema = new Schema<ITenant>(
       trim: true,
       match: [/^\+?[1-9]\d{1,14}$/, 'Please provide a valid phone number'],
     },
-      emailVerified: {
+    emailVerified: {
       type: Boolean,
       default: false,
     },

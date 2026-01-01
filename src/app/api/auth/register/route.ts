@@ -12,7 +12,7 @@ import {
   type RequestContext,
 } from "@/lib/utils/apiResponse";
 import { registerTenantService } from "@/lib/services/auth/register.service";
-import { registerTenantSchema, type RegisterTenantFormValues} from './../../../../lib/validators/register.validator';
+import { registerTenantSchema, type RegisterTenantFormValues} from '../../../../lib/validators/auth.validator';
 
 export async function POST(req: NextRequest) {
   const context: RequestContext = {

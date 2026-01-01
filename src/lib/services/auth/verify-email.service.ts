@@ -9,7 +9,6 @@ export interface VerifyEmailServiceInput {
 
 export interface VerifyEmailServiceOutput {
   tenant: ITenantResponse;
-  emailVerified: boolean;
   verifiedAt: string;
 }
 
@@ -102,7 +101,6 @@ export async function verifyEmailService(
 
   return {
     tenant: tenantResponse,
-    emailVerified: true,
     verifiedAt,
   };
 }

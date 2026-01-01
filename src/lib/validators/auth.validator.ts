@@ -45,6 +45,15 @@ export const verifyOtpSchema = z.object({
 
 export type VerifyOtpRequest = z.infer<typeof verifyOtpSchema>;
 
+
+export const resendOtpSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+});
+
+export type ResendOtpData = z.infer<typeof resendOtpSchema>;
 /**
  * Validate and parse input
  */

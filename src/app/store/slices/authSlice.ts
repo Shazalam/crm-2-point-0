@@ -8,11 +8,11 @@ import type {
   ApiResponse,
   ApiError,
   VerifyOtpResponse,
+  ResendOtpResponseData,
 } from '@/lib/types';
 
-import { RegisterTenantFormValues, VerifyOtpRequest } from '@/lib/validators/register.validator';
+import { RegisterTenantFormValues, ResendOtpData, VerifyOtpRequest } from '@/lib/validators/auth.validator';
 import { apiClient, parseApiError } from '@/lib/api/axiosInstance';
-
 
 // ============================================================================
 // TYPES
@@ -22,7 +22,7 @@ interface AuthState {
   // User data
   user: User | null;
   tenant: ITenantResponse | null;
-  requiresVerification: boolean;
+  requiresVerification: boolean | undefined;
   registeredEmail: string | null;
   isAuthenticated: boolean;
   otpExpiresIn: Date | null;
@@ -143,11 +143,12 @@ export const verifyEmail = createAsyncThunk<
   'auth/verifyEmail',
   async (payload, { rejectWithValue }) => {
     try {
-
       const { data } = await apiClient.post<ApiResponse<VerifyOtpResponse>>(
         '/api/auth/verify-otp',
         payload
       )
+
+      console.log("verify email -", data)
 
       // Validate response structure
       if (!data?.data) {
@@ -200,43 +201,39 @@ export const loginUserThunk = createAsyncThunk<
   }
 });
 
-
-
 // Async thunk for resend OTP
-// export const resendOtp = createAsyncThunk<
-//   ApiResponse<ResendOtpResponseData>,
-//   ResendOtpData,
-//   { rejectValue: RejectedPayload }
-// >(
-//   'auth/resendOtp',
-//   async (email, { rejectWithValue }) => {
-//     try {
-//       const response = await fetch('/api/auth/resend-otp', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(email),
-//       });
+export const resendOtp = createAsyncThunk<
+  ApiResponse<ResendOtpResponseData>,
+  ResendOtpData,
+  { rejectValue: ApiError }
+>(
+  'auth/resendOtp',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(email),
+      });
 
-//       const data: ApiResponse<ResendOtpResponseData> = await response.json();
+      const data: ApiResponse<ResendOtpResponseData> = await response.json();
 
-//       if (!response.ok) {
-//         return rejectWithValue({
-//           message: data.message || 'Failed to resend OTP',
-//           status: response.status,
-//           error: data.error,
-//         });
-//       }
+      if (!response.ok) {
+        return rejectWithValue({
+           code: 'INVALID_RESPONSE',
+          message: 'Invalid server response',
+          timestamp: new Date().toISOString(),
+        });
+      }
 
-//       return data;
-//     } catch (err: unknown) {
-//       const error = err as Error;
-//       return rejectWithValue({
-//         message: error.message || 'Network error',
-//         status: 500,
-//       });
-//     }
-//   }
-// );
+      return data;
+    } catch (error) {
+      // ✅ Parse error into standardized format
+      const parsedError = parseApiError(error);
+      return rejectWithValue(parsedError as ApiError);
+    }
+  }
+);
 
 /**
  * Logout user
@@ -468,21 +465,21 @@ const authSlice = createSlice({
         state.verifyOtpSuccessMsg = null
       })
     // Resend OTP
-    // .addCase(resendOtp.pending, (state) => {
-    //   state.resendOtpLoading = true;
-    //   state.resendOtpError = null;
-    // })
-    // .addCase(resendOtp.fulfilled, (state, action) => {
-    //   state.resendOtpLoading = false;
-    //   state.resendOtpError = null;
-    //   state.resendOtpSuccessMsg = action.payload.message;
-    //   const expires = action.payload.data?.otpExpires;
-    //   state.otpExpires = expires ? new Date(expires) : null;
-    // })
-    // .addCase(resendOtp.rejected, (state, action) => {
-    //   state.resendOtpLoading = false;
-    //   state.resendOtpError = action.payload?.message || 'Failed to resend OTP';
-    // })
+    .addCase(resendOtp.pending, (state) => {
+      state.resendOtpLoading = true;
+      state.resendOtpError = null;
+    })
+    .addCase(resendOtp.fulfilled, (state, action) => {
+      state.resendOtpLoading = false;
+      state.resendOtpError = null;
+      state.resendOtpSuccessMsg = action.payload.message;
+      const expires = action.payload.data?.otpExpires;
+      state.otpExpiresIn = expires ? new Date(expires) : null;
+    })
+    .addCase(resendOtp.rejected, (state, action) => {
+      state.resendOtpLoading = false;
+      state.resendOtpError = action.payload?.message || 'Failed to resend OTP';
+    })
 
     // ======================================================================
     // FETCH CURRENT USER

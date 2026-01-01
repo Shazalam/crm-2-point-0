@@ -5,7 +5,8 @@ import VerificationToken from "@/lib/models/VerificationOtp";
 import { generateOtp, hashPassword } from "@/lib/utils/auth";
 import { generateSlug } from "@/lib/helpers/slugify";
 import { sendVerificationEmail } from "@/emails/senders/send-verification";
-import { RegisterTenantFormValues } from "@/lib/validators/register.validator";
+
+import { RegisterTenantFormValues } from "@/lib/validators/auth.validator";
 import { ITenantResponse } from "@/lib/types/tenant";
 
 const STRONG_PASSWORD_REGEX =
@@ -96,7 +97,7 @@ export async function registerTenantService(
 
   // 8) Generate OTP & store verification token
   const otp = generateOtp();
-  const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const expires = new Date(Date.now() + 2 * 60 * 1000); // 10 minutes
 
   // Delete old tokens for this email (normalized)
   await VerificationToken.deleteMany({ email });

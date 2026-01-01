@@ -1,4 +1,7 @@
 // lib/types/auth.ts
+
+import { ITenantResponse } from "./tenant";
+
 /**
  * User object in Redux state
  * Only non-sensitive data that's safe to store client-side
@@ -29,6 +32,14 @@ export interface LoginResponse {
 }
 
 /**
+ * Response from /api/tenant/register endpoint
+ */
+export interface RegisterTeaentResponse {
+  tenant: ITenantResponse;
+}
+
+
+/**
  * Logout response (usually empty)
  */
 export interface LogoutResponse {
@@ -40,4 +51,14 @@ export interface LogoutResponse {
  */
 export interface MeResponse {
   user: User;
+}
+
+
+export interface VerifyOtpResponse {
+  // Optionally return a safe tenant payload so UI can update state
+  tenant: ITenantResponse;
+}
+ 
+export interface ResendOtpResponseData {
+  otpExpires: Date
 }

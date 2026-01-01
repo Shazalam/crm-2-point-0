@@ -10,7 +10,7 @@ import Button from "@/components/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Lock, Eye, EyeOff, CheckCircle, XCircle, ArrowRight, Phone } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { registerTenantSchema, type RegisterTenantFormValues } from "@/lib/validators/register.validator";
+import { registerTenantSchema, type RegisterTenantFormValues } from "@/lib/validators/auth.validator";
 import { clearRegisterError, registerTenantThunk } from "@/app/store/slices/authSlice";
 import { ErrorCode, ErrorMessages } from "@/lib/types";
 
@@ -113,7 +113,7 @@ export function RegisterForm() {
       requirements,
     };
   }
-
+  
   const passwordStrength = useMemo(
     () => getPasswordStrength(password || ""),
     [password]
@@ -121,6 +121,7 @@ export function RegisterForm() {
 
   // ✅ Handle success
   useEffect(() => {
+    console.log("tenant -", tenant)
     if (tenant) {
       handleSuccessToast("Account created! Please verify your email.");
       router.push(`/verify-email?email=${encodeURIComponent(tenant.email)}`);

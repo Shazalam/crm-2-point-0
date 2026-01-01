@@ -31,8 +31,8 @@ export interface ITenantResponse {
   name: string;
   slug: string;
   email: string;
-  otpExpiresIn: Date;
-  requiresVerification: boolean,
+  otpExpiresIn?: Date;
+  requiresVerification?: boolean,
   emailVerified?: boolean;
   phoneNumber?: string;
   createdAt: string;
@@ -71,13 +71,6 @@ export interface CreateTenantInternalDto {
 }
 
 /**
- * Response from /api/tenant/register endpoint
- */
-export interface RegisterTeaentResponse {
-  tenant: ITenantResponse;
-}
-
-/**
  * DTO for updating tenant
  */
 export interface UpdateTenantDto {
@@ -86,7 +79,3 @@ export interface UpdateTenantDto {
   plan?: 'free' | 'starter' | 'pro' | 'enterprise';
 }
 
-export interface VerifyOtpResponse {
-  // Optionally return a safe tenant payload so UI can update state
-  tenant: ITenantResponse;
-}
