@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     requestId: context.requestId,
   };
 
-
   try {
     await connectDB();
 
@@ -53,7 +52,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-
     logger.info("Login request received", {
       requestId: context.requestId,
       ip: context.ipAddress,
@@ -69,11 +67,14 @@ export async function POST(req: NextRequest) {
         if (!fieldErrors[path]) fieldErrors[path] = [];
         fieldErrors[path].push(issue.message);
       });
+
       logger.warn("Login validation failed", {
         requestId: context.requestId,
         issues: parseResult.error.issues,
       });
+
       return validationError(fieldErrors, "Invalid input", context);
+
     }
 
     const { email, password } =
