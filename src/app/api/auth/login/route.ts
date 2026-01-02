@@ -1,130 +1,211 @@
-// import { connectDB } from "@/lib/utils/db";
-// import { comparePassword, signToken } from "@/lib/utils/auth";
-// import Agent from "@/lib/models/Agent";
-
-// export async function POST(req: Request) {
-//   try {
-//     await connectDB();
-
-//     const { email, password } = await req.json();
-
-//     if (!email || !password) {
-//       return apiResponse({ success: false, message: "Email and password are required" }, 400);
-//     }
-
-//     const agent = await Agent.findOne({ email });
-
-//     if (!agent) {
-//       return apiResponse({ success: false, message: "Invalid credentials" }, 401);
-//     }
-
-//     const isMatch = await comparePassword(password, agent.password);
-
-//     if (!isMatch) {
-//       return apiResponse({ success: false, message: "Invalid credentials" }, 401);
-//     }
-
-//     // ✅ Create JWT token
-//     const token = signToken({
-//       id: agent._id,
-//       email: agent.email,
-//       name: agent.name,
-//     });
-
-//     // ✅ Prepare response data
-//     const response = apiResponse(
-//       {
-//         success: true,
-//         message: "Login successful",
-//         data: {
-//           id: agent._id,
-//           name: agent.name,
-//           email: agent.email,
-//         },
-//       },
-//       200
-//     );
-
-//     // ✅ Set cookie securely
-//     response.cookies.set("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
-//       maxAge: 60 * 60 * 24, // 1 day
-//       path: "/",
-//     });
-
-//     return response;
-//   } catch (err: unknown) {
-//     const message = err instanceof Error ? err.message : "Server error";
-//     return apiResponse({ success: false, message }, 500);
-//   }
-// }
-
-
-
-
-
-// app/api/auth/login/route.ts
-
+import { NextRequest } from "next/server";
+import crypto from "crypto";
 import { connectDB } from "@/lib/utils/db";
-import { comparePassword, signToken } from "@/lib/utils/auth";
-import Agent from "@/lib/models/Agent";
-import { badRequest, unauthorized,internalError, success } from "@/lib/utils/apiResponse";
+import {
+  badRequest,
+  internalError,
+  unauthorized,
+  validationError,
+  success,
+  ErrorCode,
+  type RequestContext,
+  HttpStatus,
+} from "@/lib/utils/apiResponse";
+import {
+  loginTenantSchema,
+  type LoginTenantFormValues,
+} from "@/lib/validators/auth.validator";
+import { loginTenantService } from "@/lib/services/auth/login.service";
+import logger from "@/lib/utils/logger";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const context: RequestContext = {
+    requestId: crypto.randomUUID(),
+    userAgent: req.headers.get("user-agent") || undefined,
+    ipAddress: req.headers.get("x-forwarded-for") || undefined,
+  };
+
+  const meta = {
+    timestamp: new Date().toISOString(),
+    version: process.env.APP_VERSION || "1.0.0",
+    requestId: context.requestId,
+  };
+
+
   try {
     await connectDB();
 
-    const { email, password } = await req.json();
+    let body: unknown;
 
-    // Validation
+    // Parse JSON
+    try {
+      body = await req.json();
+    } catch {
+      logger.warn("Invalid JSON in login request body", {
+        requestId: context.requestId,
+        ip: context.ipAddress,
+      });
+      return badRequest(
+        "Invalid JSON in request body",
+        ErrorCode.VALIDATION_ERROR,
+        { body: "Malformed JSON" },
+        context
+      );
+    }
+
+
+    logger.info("Login request received", {
+      requestId: context.requestId,
+      ip: context.ipAddress,
+      userAgent: context.userAgent,
+    });
+
+    // Zod validation
+    const parseResult = loginTenantSchema.safeParse(body);
+    if (!parseResult.success) {
+      const fieldErrors: Record<string, string[]> = {};
+      parseResult.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || "form";
+        if (!fieldErrors[path]) fieldErrors[path] = [];
+        fieldErrors[path].push(issue.message);
+      });
+      logger.warn("Login validation failed", {
+        requestId: context.requestId,
+        issues: parseResult.error.issues,
+      });
+      return validationError(fieldErrors, "Invalid input", context);
+    }
+
+    const { email, password } =
+      parseResult.data as LoginTenantFormValues;
+
+    // Optional extra check (already covered by Zod)
     if (!email || !password) {
-      return badRequest("Email and password are required");
+      logger.warn("Login request missing required fields", {
+        requestId: context.requestId,
+        email,
+      });
+
+      return badRequest(
+        "Missing required fields",
+        ErrorCode.REQUIRED_FIELD,
+        { fields: ["email", "password"] },
+        context
+      );
     }
 
-    const agent = await Agent.findOne({ email });
+    // Delegate to service
+    try {
+      const result = await loginTenantService({
+        email,
+        password,
+      });
 
-    if (!agent) {
-      return unauthorized("Invalid credentials");
+      // CASE 1: requires verification → no cookie, send OTP info
+      if (result.requiresVerification) {
+        const payload = {
+          id: result.id,
+          name: result.name,
+          email: result.email,
+          phoneNumber: result.phoneNumber,
+          slug: result.slug,
+          createdAt: result.createdAt,
+          requiresVerification: true,
+          otpExpiresIn: result.otpExpiresIn,
+        };
+
+        logger.info("Login blocked: email not verified, OTP sent", {
+          requestId: context.requestId,
+          tenantId: result.id,
+          email: result.email,
+        });
+        return success(
+          payload,
+          "Email not verified. OTP sent to your email.",
+          HttpStatus.OK,
+          meta
+        );
+      }
+
+      // CASE 2: verified → set cookie and log in
+      const payload = {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        phoneNumber: result.phoneNumber,
+        slug: result.slug,
+        createdAt: result.createdAt,
+        requiresVerification: false,
+      };
+
+      logger.info("Login successful", {
+        requestId: context.requestId,
+        tenantId: result.id,
+        email: result.email,
+      });
+      const res = success(
+        payload,
+        "Login successful",
+        HttpStatus.OK,
+        meta
+      );
+
+      if (result.token) {
+        res.cookies.set("token", result.token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 60 * 60 * 24,
+          path: "/",
+        });
+      }
+
+      return res;
+
+    } catch (error: any) {
+      if (error?.code === "INVALID_CREDENTIALS") {
+        logger.warn("Login failed: invalid credentials", {
+          requestId: context.requestId,
+          email,
+        });
+        return unauthorized(
+          "Invalid credentials",
+          ErrorCode.UNAUTHORIZED,
+          undefined,
+          context
+        );
+      }
+
+      logger.error("Login service error", {
+        requestId: context.requestId,
+        email,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      return internalError(
+        "Failed to login",
+        ErrorCode.INTERNAL_ERROR,
+        {
+          message: error instanceof Error ? error.message : "Unexpected error",
+          ...(error instanceof Error && { stack: error.stack }),
+        },
+        context
+      );
     }
-
-    const isMatch = await comparePassword(password, agent.password);
-
-    if (!isMatch) {
-      return unauthorized("Invalid credentials");
-    }
-
-    // Generate JWT Token
-    const token = signToken({
-      id: agent._id.toString(),
-      email: agent.email,
-      name: agent.name,
+  } catch (error: any) {
+    logger.error("Login route fatal error", {
+      requestId: context.requestId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     });
-
-    // Prepare Login Response Payload
-    const responsePayload = {
-      id: agent._id,
-      name: agent.name,
-      email: agent.email,
-    };
-
-    // Create Response
-    const response = success(responsePayload, "Login successful");
-
-    // Attach HTTP-only cookie
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24, // 1 day
-      path: "/",
-    });
-
-    return response;
-
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Server error";
-    return internalError(message);
+    return internalError(
+      "Failed to login",
+      ErrorCode.INTERNAL_ERROR,
+      {
+        message: error instanceof Error ? error.message : "Unexpected error",
+        ...(error instanceof Error && { stack: error.stack }),
+      },
+      context
+    );
   }
 }

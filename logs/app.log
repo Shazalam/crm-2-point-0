@@ -1,0 +1,30 @@
+
+2026-01-03 03:18:05 [INFO]: Login request received 
+2026-01-03 03:18:05 [DEBUG]: Login attempt starting 
+2026-01-03 03:18:06 [WARN]: Login failed: tenant not found 
+2026-01-03 03:18:06 [WARN]: Login failed: invalid credentials 
+2026-01-03 03:19:40 [INFO]: Login request received 
+2026-01-03 03:19:40 [DEBUG]: Login attempt starting 
+2026-01-03 03:19:40 [WARN]: Login failed: tenant not found 
+2026-01-03 03:19:40 [WARN]: Login failed: invalid credentials 
+2026-01-03 03:19:56 [INFO]: Login request received 
+2026-01-03 03:19:56 [DEBUG]: Login attempt starting 
+2026-01-03 03:19:57 [WARN]: Login failed: password mismatch 
+2026-01-03 03:19:57 [WARN]: Login failed: invalid credentials 
+2026-01-03 03:20:52 [INFO]: Login request received 
+2026-01-03 03:20:52 [DEBUG]: Login attempt starting 
+2026-01-03 03:20:53 [INFO]: Login blocked: email not verified, generating OTP 
+2026-01-03 03:20:57 [INFO]: Verification email sent during login 
+2026-01-03 03:20:57 [INFO]: Login blocked: email not verified, OTP sent 
+2026-01-03 03:21:30 [INFO]: Verify email request received 
+2026-01-03 03:21:30 [DEBUG]: Verifying email OTP 
+2026-01-03 03:21:30 [WARN]: Invalid OTP during email verification 
+2026-01-03 03:21:30 [ERROR]: Email verification route failed 
+2026-01-03 03:22:16 [INFO]: Verify email request received 
+2026-01-03 03:22:16 [DEBUG]: Verifying email OTP 
+2026-01-03 03:22:16 [WARN]: Invalid OTP during email verification 
+2026-01-03 03:22:16 [ERROR]: Email verification route failed 
+2026-01-03 03:22:32 [INFO]: Verify email request received 
+2026-01-03 03:22:32 [DEBUG]: Verifying email OTP 
+2026-01-03 03:22:32 [INFO]: Tenant email marked as verified 
+2026-01-03 03:22:32 [INFO]: Email verified successfully 

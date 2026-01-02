@@ -31,6 +31,23 @@ export const registerTenantSchema = z.object({
 
 export type RegisterTenantFormValues = z.infer<typeof registerTenantSchema>;
 
+export const loginTenantSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/\d/, "Must contain a number")
+    .regex(/[@$!%*?&]/, "Must contain a special character (@$!%*?&)"),
+});
+
+export type LoginTenantFormValues = z.infer<typeof loginTenantSchema>;
+
 // Zod schema for OTP verification request
 export const verifyOtpSchema = z.object({
   email: z
@@ -45,7 +62,6 @@ export const verifyOtpSchema = z.object({
 
 export type VerifyOtpRequest = z.infer<typeof verifyOtpSchema>;
 
-
 export const resendOtpSchema = z.object({
   email: z
     .string()
@@ -54,9 +70,3 @@ export const resendOtpSchema = z.object({
 });
 
 export type ResendOtpData = z.infer<typeof resendOtpSchema>;
-/**
- * Validate and parse input
- */
-// export function validateCreateTenant(input: unknown) {
-//   return RegisterTenantFormValues.safeParse(input);
-// }

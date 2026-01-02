@@ -35,6 +35,7 @@ export interface ITenantResponse {
   requiresVerification?: boolean,
   emailVerified?: boolean;
   phoneNumber?: string;
+  token?:string;
   createdAt: string;
 }
 

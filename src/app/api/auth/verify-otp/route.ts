@@ -21,6 +21,7 @@ import {
   type VerifyOtpRequest,
 } from "@/lib/validators/auth.validator";
 import type { VerifyOtpResponse } from "@/lib/types";
+import logger from "@/lib/utils/logger";
 
 /**
  * POST /api/tenant/verify-email
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
+       logger.warn("Invalid JSON in verify-email request", {
+        requestId: context.requestId,
+        ip: context.ipAddress,
+      });
       return badRequest(
         "Invalid JSON in request body",
         ErrorCode.VALIDATION_ERROR,
@@ -72,13 +77,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+      logger.info("Verify email request received", {
+      requestId: context.requestId,
+      email: body.email,
+      ip: context.ipAddress,
+      userAgent: context.userAgent,
+    });
     // ============================================================
     // STEP 2: Validate with Zod
     // ============================================================
 
     const parseResult = verifyOtpSchema.safeParse(body);
-    console.log("parseResult =", parseResult)
     if (!parseResult.success) {
+       logger.warn("Verify email validation failed", {
+        requestId: context.requestId,
+        email: body.email,
+        issues: parseResult.error.issues,
+      });
       const fieldErrors: Record<string, string[]> = {};
       parseResult.error.issues.forEach((issue) => {
         const path = issue.path[0]?.toString() || "form";
@@ -96,6 +111,11 @@ export async function POST(req: NextRequest) {
     // ============================================================
     const result = await verifyEmailService({ email, otp });
 
+      logger.info("Email verified successfully", {
+      requestId: context.requestId,
+      tenantId: result.tenant.id,
+      email: result.tenant.email,
+    });
     // ============================================================
     // STEP 4: Generate auth token
     // ============================================================
@@ -129,7 +149,11 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error: unknown) {
-    console.error("❌ Email Verification Error:", error);
+     logger.error("Email verification route failed", {
+      requestId: context.requestId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
 
     // ============================================================
     // Map known service errors to proper responses

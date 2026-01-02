@@ -51,7 +51,6 @@ export default function VerifyEmailContent() {
         () => searchParams.get("email") ? decodeURIComponent(searchParams.get("email") as string) : "",
         [searchParams]
     );
-     console.log("email =", email)
 
     const redirect = useMemo(
         () => searchParams.get("redirect") ? decodeURIComponent(searchParams.get("redirect") as string) : "/",

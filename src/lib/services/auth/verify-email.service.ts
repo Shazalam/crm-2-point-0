@@ -1,6 +1,7 @@
 // lib/services/auth/verify-email.service.ts
 import { Tenant, VerificationToken } from "@/lib/models";
 import type { ITenantResponse } from "@/lib/types";
+import logger from "@/lib/utils/logger";
 
 export interface VerifyEmailServiceInput {
   email: string;
@@ -29,6 +30,11 @@ export async function verifyEmailService(
   const { email, otp } = input;
   const normalizedEmail = email.toLowerCase();
 
+   logger.debug("Verifying email OTP", {
+    email: normalizedEmail,
+    otp,
+  });
+
   // ============================================================
   // Step 1: Find verification token
   // ============================================================
@@ -38,6 +44,9 @@ export async function verifyEmailService(
   });
 
   if (!token) {
+     logger.warn("Invalid OTP during email verification", {
+      email: normalizedEmail,
+    });
     const error = new Error("Invalid OTP");
     (error as any).code = "INVALID_OTP";
     (error as any).details = {
@@ -50,6 +59,11 @@ export async function verifyEmailService(
   // Step 2: Check token expiration
   // ============================================================
   if (token.expires < new Date()) {
+     logger.warn("Expired OTP used for email verification", {
+      email: normalizedEmail,
+      tokenId: token._id.toString(),
+      expiresAt: token.expires,
+    });
     // Clean up expired token
     await VerificationToken.deleteOne({ _id: token._id });
 
@@ -67,6 +81,9 @@ export async function verifyEmailService(
   const tenant = await Tenant.findOne({ email: normalizedEmail });
 
   if (!tenant) {
+       logger.error("Tenant not found during email verification", {
+      email: normalizedEmail,
+    });
     const error = new Error("Tenant not found");
     (error as any).code = "TENANT_NOT_FOUND";
     (error as any).details = { email: normalizedEmail };
@@ -89,6 +106,11 @@ export async function verifyEmailService(
   // ============================================================
   const verifiedAt = new Date().toISOString();
 
+   logger.info("Tenant email marked as verified", {
+    tenantId: tenant._id.toString(),
+    email: tenant.email,
+    verifiedAt,
+  });
   const tenantResponse: ITenantResponse = {
     id: tenant._id.toString(),
     name: tenant.name,
